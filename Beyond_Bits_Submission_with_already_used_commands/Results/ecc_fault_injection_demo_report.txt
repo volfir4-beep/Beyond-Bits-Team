@@ -1,0 +1,16 @@
+ECC Verification Report -- Hamming(7,4)
+========================================
+Total codewords: 57
+Deliberately flipped bit index 4 of codeword #28 (simulated channel noise)
+
+  >> Injected bit flip into codeword #28: clean=0100101 corrupted=0110101
+  Codeword #28: ERROR DETECTED at bit position 3 -- CORRECTED (recovered data=0101)
+
+Encode -> corrupt -> decode cycle complete.
+Compare decoded_bits.txt (first 225 bits, ignoring padding) against compressed.txt to confirm full recovery.
+
+---
+Produced by: RTL/tb_ecc_correction_demo.v (standalone fault-injection testbench)
+Purpose: proves the Hamming(7,4) decoder's single-bit detect+correct capability
+directly, independent of whether the real LTSpice channel happened to introduce
+an error on any given run. See Documentation/Beyond_Bits_Technical_Report, Section 4.3.

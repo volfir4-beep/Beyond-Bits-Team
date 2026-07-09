@@ -1,0 +1,6 @@
+ECC Decode Report -- Hamming(7,4)
+==================================
+Total codewords received: 57
+
+
+Total errors detected and corrected: 0 / 57 codewords

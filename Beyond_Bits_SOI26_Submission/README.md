@@ -64,6 +64,16 @@ Results/         RESULTS_SUMMARY.md                  index: claim -> evidence fi
 | `final_compressed_recovered.txt`, `final_recovered_bits.txt` | notebook Step 8 + RTL decompressor | 225 -> 88 bits |
 | `tx_bit_count.txt` | notebook Step 4 | 399 (actual transmitted bit count) |
 
+## Note on the included files
+
+Every file in `PYTHON/`, `LTSpice/`, and `Results/` is the output of a run we
+already completed — they are evidence of what the pipeline produced, not a blank
+starting point. Please don't delete or edit these files directly, since they're
+what our reported numbers in `Results/RESULTS_SUMMARY.md` and the technical
+report are based on. If you'd like to run the pipeline yourself to confirm it
+genuinely works rather than taking our word for it, we'd encourage you to copy
+the folder to a separate location first and run it there — instructions below.
+
 ## How to reproduce it
 
 ### 1. Install prerequisites
@@ -72,44 +82,49 @@ Results/         RESULTS_SUMMARY.md                  index: claim -> evidence fi
 - **LTSpice** — free, from https://www.analog.com/en/resources/design-tools-and-calculators/ltspice-simulator.html
 
 ### 2. Run the notebook
-Open `PYTHON/beyondbits_final.ipynb` and run cells top to bottom, in order, in one sitting.
-- Cells 1–4 run automatically (they call `iverilog`/`vvp` for you) and produce `signal.pwl` and copy this into the `LTSpice` Folder.
-- **Cell 5 is a manual pause**: open `LTSpice/Modulator_with_demod_FIXED.asc`, run the simulation,
-  export `V(DEMOD_OUT)` as `demod_output.txt` in the same folder as the notebook, then continue.
-- Cells 6–9 finish automatically and print `Pipeline Integrity Verified: True` if everything worked.
+Open `PYTHON/beyondbits_final.ipynb` and run the cells top to bottom, in order,
+in one sitting.
+- Cells 1–4 run automatically (they call `iverilog`/`vvp` for you) and produce
+  `signal.pwl`, which you should copy into the `LTSpice/` folder.
+- **Cell 5 is a manual pause**: open `LTSpice/Modulator_with_demod_FIXED.asc`,
+  run the simulation, export `V(DEMOD_OUT)` as `demod_output.txt` in the same
+  folder as the notebook, then continue.
+- Cells 6–9 finish automatically and print `Pipeline Integrity Verified: True`
+  if everything worked.
+
+You're welcome to change `TEXT_INPUT` in Cell 1 to any string you like. Note that
+this will naturally give different bit counts, compression ratios, and BER/SNR
+numbers than the ones in `Results/RESULTS_SUMMARY.md`, since that file reports
+figures for the specific input `'hello world'`. That's expected — the goal of
+trying a different input is to confirm the pipeline genuinely compresses,
+transmits, and reconstructs data correctly, not to reproduce our exact numbers.
 
 ### 3. Reproducing the ECC fault-injection proof (optional, already included as evidence)
 
-- Open the `PYTHON` Folder in Terminal and paste the following Commands.
+Open the `PYTHON` folder in a terminal and run:
 
 ```
 iverilog -o ecc_demo RTL/hamming74_enc.v RTL/hamming74_dec.v RTL/tb_ecc_correction_demo.v
 vvp ecc_demo
 ```
-This regenerates `ecc_report.txt` (reproduced here as `Results/ecc_fault_injection_demo_report.txt`),
-showing a deliberately flipped bit being detected and corrected.
+This regenerates `ecc_report.txt` (reproduced here as
+`Results/ecc_fault_injection_demo_report.txt`), showing a deliberately flipped bit
+being detected and corrected.
 
 ## Known limitation, reported honestly (see report Section 3.2)
 
 RLE compression **expands** the "hello world" demo input (88 -> 225 bits, CR = 0.39x)
 because that string has almost no repeated bit-runs — RLE's fixed 5-bit-per-run
-overhead only pays off on redundant data. This is explained in the report rather
-than hidden; a good, quick strengthening step (not required) is to re-run the
-notebook once more with a more repetitive `TEXT_INPUT` (e.g. a string with long
-repeated-character runs) to also show a case where CR > 1.
+overhead only pays off on redundant data. We're explaining this in the report
+rather than hiding it.
 
-<!-- ## What was fixed since the original submission
-- Testbench race condition (inputs now driven on `negedge`, not racing the DUT's `posedge`)
-- `decompressor.v` was unused — now has two real testbenches (standalone RTL proof + final pipeline stage)
-- Notebook: undefined `V_HIGH`, `generate_pwl()` never called, mismatched bit timing (50us vs 1us), final check hardcoded `'HELLO WORLD'` instead of comparing to the real input, and decompression was skipped before the final text conversion — all fixed
-- Missing demodulator circuit (`Draft1.asc` was referenced but absent) — rebuilt as an envelope detector (1N4148 diode + 1k/470pF RC filter) in `Modulator_with_demod_FIXED.asc`
-- Hardcoded Windows file path — now relative
-- Added Hamming(7,4) RTL error-correction coding (Pipeline Enhancement #3), with a
-  demonstrated single-bit-error injection and correction, verified end-to-end
-- **Technical Report rewritten**: added the missing Hamming(7,4) ECC section, the
-  mandatory BER/SNR analysis section, corrected the input-text mismatch
-  ("HELLO WORLD" -> "hello world"), and replaced unsupported claims ("highly
-  effective... excellent optimization coefficients") with the actual measured
-  compression ratio and an honest discussion of when RLE helps vs. hurts
-- Full pipeline run end-to-end with real LTSpice simulation; every intermediate
-  file included as evidence instead of only a screenshot/printout -->
+------------------------------------------------------------------------------------------
+
+Thank you for reading.
+
+Team Beast Of Bits,
+Himank Jain
+Parth Patel
+Nagesh Pooniya
+
+------------------------------------------------------------------------------------------
